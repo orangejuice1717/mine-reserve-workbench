@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0f171c" />
+<meta name="description" content="Mine Reserve offline-first: visualisasi block model, desain pit, ringkasan OB/Saprolit, SR, dan kadar berbobot." />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icons/mark.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./icons/mark.svg" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Mine Reserve" />
+<title>Mine Reserve Workbench — Local Analysis</title>
+
+<link rel="stylesheet" href="./base.css"><link rel="stylesheet" href="./workbench.css"></head>
+<body>
+<div class="app">
+<header class="topbar">
+  <div class="brand"><div class="logo">MR</div><div><h1>Mine <span style="color:var(--accent)">Reserve</span></h1><p>WORKBENCH / Model, design & field intelligence</p></div></div>
+  <div class="topright">
+    <span class="pill" id="appStatusPill"><i class="dot" id="appStatusDot"></i><span id="appStatusText">Menyiapkan offline…</span></span>
+    <button id="installAppBtn" class="small hidden" type="button">Pasang di HP</button>
+    <button id="updateAppBtn" class="small" type="button">Periksa pembaruan</button>
+    <span class="pill" id="versionPill">v2.0.0 · Workbench</span><span class="pill" id="crsPill">CRS · EPSG:32751</span>
+  </div>
+</header>
+<div class="layout">
+<aside class="sidebar">
+  <section class="card">
+    <div class="card-title"><h2>DATA PROJECT</h2><span class="eyebrow">SOURCE</span></div>
+    <div class="file-line"><div class="file-ico">CSV</div><div class="file-info"><b id="csvName">remain_reserve_sept0.csv</b><span id="csvStatus">Memuat block model…</span></div><span id="csvCheck" class="file-state">LOAD</span></div>
+    <div class="file-line"><div class="file-ico" style="background:#203047;color:#9ec1ff">TIF</div><div class="file-info"><b>pit-preview.webp · Ortofoto</b><span id="rasterStatus">EPSG:32751 · preview ringan</span></div><span class="file-state">READY</span></div>
+    <div class="button-row" style="margin-top:10px"><button id="loadCsvBtn" class="small">Pilih CSV lain</button><button id="fitBtn" class="small">Fit data</button></div>
+    <div class="button-row" style="margin-top:8px"><button id="driveSyncBtn" class="small primary" type="button">↺ Dataset asli</button><button id="driveKeyBtn" class="small" type="button">Format & asumsi</button></div>
+    <div class="subtext" id="driveSyncStatus" role="status" aria-live="polite" style="margin-top:7px">Mode lokal · tidak memerlukan API.</div>
+    <div class="button-row" style="margin-top:8px"><button id="importOrthoTiffBtn" class="small" type="button">Import TIFF → WebP + JSON</button></div>
+    <input id="orthoTiffFile" type="file" accept=".tif,.tiff,image/tiff" class="hidden" />
+    <div class="subtext" id="orthoConvertStatus" role="status" aria-live="polite" style="margin-top:6px">Pilih GeoTIFF untuk membuat preview peta dan metadata.</div>
+    <input id="csvFile" type="file" accept=".csv,text/csv" class="hidden" />
+    <div class="progress"><span id="loadProgress"></span></div>
+    <div class="subtext" style="margin-top:9px">Data diproses di browser perangkat Anda. Ukuran block tetap 12,5 × 12,5 × 1 m. CSV wajib memakai CRS EPSG:32751.</div>
+  </section>
+  <section class="card" id="collarCard">
+    <div class="card-title"><h2>COLLAR / DATA BOR</h2><span class="collar-status" id="collarStatus">MEMUAT…</span></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">Titik collar</div><div class="value" id="collarCount">—</div></div>
+      <div class="stat"><div class="label">Dalam cakupan ortho</div><div class="value" id="collarInsideCount">—</div></div>
+    </div>
+    <div class="subtext" id="collarLoadNote" style="margin-top:8px">Menggabungkan data collar proyek…</div>
+    <div class="field" style="margin-top:11px"><label for="collarSearch">Cari ID lubang bor</label><input id="collarSearch" type="search" placeholder="Contoh: UKK44-193" autocomplete="off" /></div>
+    <div class="button-row" style="margin-top:8px"><button class="primary" id="collarFindBtn" type="button">Cari ID</button><button id="collarFitBtn" type="button">Fit collar</button></div>
+    <div class="button-row" style="margin-top:7px"><button id="collarLoadBtn" type="button">Muat CSV collar lain</button></div>
+    <input id="collarFile" class="hidden" type="file" accept=".csv,text/csv" />
+    <div class="collar-details" id="collarSelectedInfo">
+      <div class="hole-name">Belum ada titik dipilih</div>
+      <div class="hole-meta">Klik titik collar pada peta atau cari ID untuk melihat koordinat, elevasi, dan kedalaman lubang.</div>
+    </div>
+    <div class="subtext" id="assayLoadStatus" style="margin-top:8px">Data assay belum dimuat…</div>
+    <div class="notice" style="margin-top:9px">Pilih satu titik bor, lalu tekan “Lihat log litologi & assay” untuk membuka model intervalnya. Log tidak ditampilkan otomatis.</div>
+  </section>
+  <section class="card hidden" id="assayLogCard" aria-live="polite">
+    <div class="card-title"><h2>MODEL BOR · LITOLOGI & ASSAY</h2><span class="eyebrow" id="assayLogStatus">TERTUTUP</span></div>
+    <div class="assay-log-heading" id="assayLogHeading">Pilih titik collar terlebih dahulu.</div>
+    <div class="notice" id="assayLogMessage" style="margin-top:8px">Profil litologi baru akan ditampilkan setelah Anda memilih tombolnya pada detail titik bor.</div>
+    <div class="assay-stat-grid" id="assayLogStats"></div>
+    <div class="assay-profile-title"><b>Model interval vertikal</b><span id="assayProfileDepthLabel">—</span></div>
+    <div id="assayProfile" class="assay-profile-empty">Pilih titik bor, lalu tekan “Lihat log litologi & assay”.</div>
+    <div class="assay-legend" id="assayLegend"></div>
+    <div class="summary-table-wrap assay-interval-table-wrap" style="margin-top:10px">
+      <table class="summary-table assay-interval-table">
+        <thead><tr><th>From (m)</th><th>To (m)</th><th>Interval (m)</th><th>Litologi</th><th>Zona</th><th>Ni (%)</th><th>Fe (%)</th><th>SiO₂ (%)</th><th>MgO (%)</th></tr></thead>
+        <tbody id="assayIntervalBody"><tr><td colspan="9" class="table-empty">Log bor belum dibuka.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="button-row" style="margin-top:10px"><button id="closeAssayLogBtn" type="button">Tutup model bor</button></div>
+  </section>
+  <section class="card">
+    <div class="card-title"><h2>RINGKASAN POLYGON · TAHAP TERPILIH</h2><span class="eyebrow" id="summaryTag">BELUM ADA POLYGON</span></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">Block di polygon · tahap aktif</div><div class="value" id="statBlocks">—</div></div>
+      <div class="stat"><div class="label">Volume tahap polygon</div><div class="value" id="statVolume">— <span class="unit">m³</span></div></div>
+      <div class="stat"><div class="label">Tonase tahap polygon</div><div class="value" id="statTonnes">— <span class="unit">t</span></div></div>
+      <div class="stat"><div class="label">Ni berbobot tonase · SUMPRODUCT</div><div class="value" id="statNi">— <span class="unit">%</span></div></div>
+      <div class="stat"><div class="label">Fe berbobot tonase · SUMPRODUCT</div><div class="value" id="statFe">— <span class="unit">%</span></div></div>
+      <div class="stat"><div class="label">Rasio bawah / atas cut-off (t/t)</div><div class="value" id="statSR">—</div></div>
+    </div>
+    <div class="class-breakdown" id="classBreakdown"></div>
+    <div class="summary-table-wrap" style="margin-top:9px">
+      <table class="summary-table">
+        <thead><tr><th>Kategori tahap</th><th>Block</th><th>Volume (m³)</th><th>Tonase (t)</th><th>Ni (%)</th><th>Fe (%)</th></tr></thead>
+        <tbody id="polygonStageObSapBody"><tr><td colspan="6" class="table-empty">Gambar polygon untuk melihat OB/Saprolit pada tahap terpilih.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="subtext" id="summaryNote" style="margin-top:9px">Gambar polygon untuk menghitung ringkasan tahap di dalam polygon; ringkasan total semua elevasi tersedia di bawah.</div>
+    <div class="button-row" style="margin-top:9px"><button id="exportPolygonStageSummaryBtn" disabled>Ekspor ringkasan tahap polygon</button><button id="exportPolygonStageBlocksBtn" disabled>Ekspor block tahap polygon</button></div>
+  </section>
+  <section class="card" id="polygonSummaryCard">
+    <div class="card-title"><h2>RINGKASAN POLYGON · SEMUA ELEVASI</h2><span class="eyebrow" id="polygonSummaryTag">SEMUA Z</span></div>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">Luas polygon</div><div class="value" id="polyArea">— <span class="unit">ha</span></div></div>
+      <div class="stat"><div class="label">Block pusat di dalam polygon</div><div class="value" id="polyBlocks">—</div></div>
+      <div class="stat"><div class="label">Volume model dalam polygon</div><div class="value" id="polyVolume">— <span class="unit">m³</span></div></div>
+      <div class="stat"><div class="label">Tonase model dalam polygon</div><div class="value" id="polyTonnes">— <span class="unit">t</span></div></div>
+      <div class="stat"><div class="label">Ni berbobot tonase · SUMPRODUCT</div><div class="value" id="polyNi">— <span class="unit">%</span></div></div>
+      <div class="stat"><div class="label">Fe berbobot tonase · SUMPRODUCT</div><div class="value" id="polyFe">— <span class="unit">%</span></div></div>
+    </div>
+    <div class="notice" style="margin-top:10px">Rumus kadar berbobot: SUMPRODUCT(tonase block, kadar block) ÷ SUM(tonase block). Ringkasan ini mencakup semua level Z dari pusat block XY di dalam polygon. Ringkasan tahap terpilih berada di panel atas dan berubah mengikuti kedalaman.</div>
+    <div id="obSapSummary">
+      <div class="card-title"><h2>RINGKASAN CUT-OFF NI · SEMUA Z</h2><span class="eyebrow">CUT-OFF Ni 1,20%</span></div>
+      <div class="op-stat-grid">
+        <div class="op-stat"><div class="label">Rasio cut-off · tonase bawah / atas cut-off</div><div class="value" id="obSapSR">—</div></div>
+        <div class="op-stat"><div class="label">Tonase bawah cut-off · Ni &lt; 1,20%</div><div class="value" id="obTonnes">— <span class="unit">t</span></div></div>
+        <div class="op-stat"><div class="label">Tonase atas cut-off · Ni ≥ 1,20%</div><div class="value" id="sapTonnes">— <span class="unit">t</span></div></div>
+      </div>
+      <div class="summary-table-wrap">
+        <table class="summary-table">
+          <thead><tr><th>Kategori</th><th>Block</th><th>Volume (m³)</th><th>Tonase (t)</th><th>Ni (%)</th><th>Fe (%)</th></tr></thead>
+          <tbody id="polygonObSapBody"><tr><td colspan="6" class="table-empty">Gambar dan selesaikan polygon untuk menghitung ringkasan OB/Saprolit.</td></tr></tbody>
+        </table>
+      </div>
+      <div class="op-method">Kelompok operasional berbasis Ni, bukan penentuan litologi. Label internal ekspor OB/Saprolit berarti bawah/atas cut-off: OB = Ni &lt; 1,20%; Saprolit = Ni ≥ 1,20%, terlepas dari label klasifikasi sumber. Kadar Ni/Fe dihitung dengan SUMPRODUCT(tonase, kadar) ÷ SUM(tonase). SR pada aplikasi ini = tonase OB ÷ tonase Saprolit. Ringkasan mencakup semua level Z dalam polygon.</div>
+      <div class="button-row" style="margin-top:9px"><button id="exportObSapBtn" disabled>Ekspor ringkasan OB/Saprolit + SR</button></div>
+    </div>
+    <div class="card-title" style="margin:13px 0 7px"><h2>RINCIAN TONASE PER KLASIFIKASI SUMBER · SEMUA Z</h2><span class="eyebrow">BERBOBOT TONASE</span></div>
+    <div class="summary-table-wrap">
+      <table class="summary-table">
+        <thead><tr><th>Material</th><th>Block</th><th>Volume (m³)</th><th>Tonase (t)</th><th>Ni (%)</th><th>Fe (%)</th></tr></thead>
+        <tbody id="polygonClassBody"><tr><td colspan="6" class="table-empty">Gambar dan selesaikan polygon untuk menghitung summary.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="button-row" style="margin-top:10px"><button id="exportPolySummaryBtn" disabled>Ekspor summary polygon</button><button id="exportPolyBlocksBtn" disabled>Ekspor block polygon</button></div>
+    <div class="subtext" id="polySummaryNote" style="margin-top:9px">Summary polygon menghitung pusat block yang berada di dalam boundary. Belum ada polygon yang dipilih.</div>
+  </section>
+  <section class="card">
+    <div class="card-title"><h2>POLYGON & TAHAP PENURUNAN</h2><span class="eyebrow">ELEVASI OTOMATIS</span></div>
+    <div class="notice">Gambar polygon area rencana. Aplikasi membaca Z block tertinggi pada setiap kolom XY dari CSV yang telah di-update mengikuti topo, lalu memilih tahap 1 m, 2 m, 3 m, dan seterusnya per kolom. Anda tidak perlu memasukkan RL manual.</div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="field"><label for="cutDepth">Tahap penurunan dari level awal (m)</label><input id="cutDepth" type="number" min="1" step="1" value="1" inputmode="numeric" /></div>
+      <div class="field"><label for="selectionMode">Mode hasil</label><select id="selectionMode"><option value="layer">Lapisan tahap ini (1 m)</option><option value="cumulative">Akumulasi sampai kedalaman</option></select></div>
+    </div>
+    <div class="form-grid" style="margin-top:9px">
+      <div class="stat"><div class="label">RL permukaan per kolom</div><div class="value" id="statTopRL">— <span class="unit">RL</span></div></div>
+      <div class="stat"><div class="label">RL target per kolom</div><div class="value" id="statTargetRL">— <span class="unit">RL</span></div></div>
+    </div>
+    <div class="slope-control"><div><span>Sudut lereng overall</span><div style="font-size:10px;color:#c0d0d4;margin-top:3px">Dari horizontal, mengikuti kedalaman target</div></div><b>60°</b></div>
+    <div class="form-grid">
+      <div class="stat"><div class="label">Penurunan target</div><div class="value" id="statHeight">— <span class="unit">m</span></div></div>
+      <div class="stat"><div class="label">Offset horizontal lereng</div><div class="value" id="statRun">— <span class="unit">m</span></div></div>
+    </div>
+    <div class="formula"><strong>Level berdasarkan CSV:</strong><br>RL top tiap kolom XY = Z tertinggi kolom + 0,5 m.<br>RL target tiap kolom = RL top kolom − kedalaman tahap.<br><span id="formulaCalc">Gambar polygon untuk membaca level Z per kolom.</span></div>
+    <div class="button-row" style="margin-top:11px"><button class="primary" id="drawBtn">＋ Gambar polygon</button><button id="finishBtn" disabled>Selesai polygon</button></div>
+    <div class="button-row" style="margin-top:7px"><button id="undoBtn" disabled>Undo titik</button><button id="boxBtn">Polygon extent CSV</button><button id="clearBtn" class="danger">Hapus</button></div>
+    <div class="button-row" style="margin-top:7px"><button id="depthMinusBtn">− 1 m</button><button id="depthPlusBtn">+ 1 m</button></div>
+    <div class="subtext" id="polygonStatus" style="margin-top:9px">Belum ada polygon. Gambar polygon yang melingkupi pusat block yang ingin dianalisis.</div>
+    <div class="button-row" style="margin-top:10px"><button class="primary" id="applyDesignBtn">Hitung tahap & material</button><div class="notice" id="envelopeResult">Envelope 60° adalah pendekatan visual; bukan desain geoteknik final.</div><button id="exportStageBtn" disabled>Ekspor block + envelope</button></div>
+    <div class="subtext" style="margin-top:8px">Mode “Lapisan tahap ini” memilih satu lapisan setinggi 1 m pada kedalaman yang dipilih (tahap 1, 2, 3, dst.). Mode “Akumulasi” menghitung semua block sampai RL target.</div>
+  </section>
+  <section class="card">
+    <div class="card-title"><h2>CATATAN TEKNIS</h2><span class="eyebrow">CHECK</span></div>
+    <div id="extentWarning" class="warning">Memeriksa cakupan ortofoto terhadap koordinat CSV…</div>
+    <p class="method" style="margin:10px 0 0">Ortofoto adalah citra visual, bukan DEM. Level permukaan diturunkan per kolom XY berdasarkan block Z tertinggi yang tersedia pada CSV. Hal ini mengikuti block model yang telah dipotong oleh topo update, bukan mengukur topografi aktual di antara block. Envelope 60° adalah offset horizontal rencana = kedalaman / tan(60°), bukan desain geoteknik final. Hasil volume/tonase memakai pusat block dan ukuran tetap 12,5 × 12,5 × 1 m; verifikasi ukuran, densitas, serta parameter resmi sebelum dipakai untuk laporan cadangan.</p>
+  </section>
+</aside>
+<main class="main">
+  <div class="map-head"><div class="map-title"><div style="width:30px;height:30px;border:1px solid #34474e;border-radius:9px;display:grid;place-items:center;color:var(--accent)">⌖</div><div><h2>ORTHO + BLOCK MODEL</h2><span id="mapSub">Menyiapkan peta proyek…</span></div></div><div class="toolbar"><button id="orthoToggle" class="active" type="button" aria-pressed="true" title="Sembunyikan atau tampilkan ortofoto">Ortofoto ✓</button><button id="blocksToggle" class="active" type="button" aria-pressed="true" title="Sembunyikan seluruh block model; ortofoto, polygon, dan ringkasan tetap aktif">Sembunyikan blok</button><button id="mapMaterialAll" class="active" type="button" title="Tampilkan semua material">Semua material</button><button id="mapMaterialOB" type="button" title="Tampilkan OB/Waste saja">OB saja</button><button id="mapMaterialSap" type="button" title="Tampilkan Saprolit saja">Saprolit saja</button><button id="collarsToggle" class="active" type="button" aria-pressed="true" title="Sembunyikan atau tampilkan seluruh titik collar">Sembunyikan collar</button><button id="collarLabelsToggle" class="active" type="button" aria-pressed="true" title="Sembunyikan atau tampilkan label ID collar">ID bor ✓</button><button id="zoomOutBtn">−</button><button id="zoomInBtn">＋</button><button id="rotateLeftBtn" type="button" title="Putar ortofoto 15° ke kiri">↶ 15°</button><button id="rotateRightBtn" type="button" title="Putar ortofoto 15° ke kanan">↷ 15°</button><button id="northUpBtn" type="button" title="Kembalikan orientasi utara tepat ke atas">Utara ↑</button><button id="fitBtn2">Fit</button></div></div>
+  <div class="mapbox" id="mapbox">
+    <img id="orthoLayer" class="ortho-layer" alt="Ortofoto pit" draggable="false" />
+    <canvas id="mapCanvas" aria-label="Peta interaktif ortofoto, block model, collar, dan posisi GPS"></canvas>
+    <section class="gps-panel" id="gpsPanel" aria-live="polite" aria-label="Posisi GPS lapangan">
+      <div class="gps-panel-head"><span class="gps-panel-title">POSISI SAYA · GPS</span><span class="gps-live-dot" id="gpsLiveDot"></span></div>
+      <div class="gps-status-text" id="gpsStatusText">GPS belum diaktifkan. Tekan “Cari posisi” dan izinkan akses lokasi pada browser.</div>
+      <div class="gps-coord-text" id="gpsCoordsText">UTM 51S: —<br>Lat/Lon: —</div>
+      <div class="gps-btn-row"><button id="gpsLocateBtn" class="primary" type="button" title="Cari lokasi terkini dari perangkat">📍 Cari posisi</button><button id="gpsFollowBtn" type="button" title="Aktifkan atau nonaktifkan pelacakan GPS">Aktifkan GPS</button></div>
+      <div class="gps-location-legend"><i></i> Titik posisi perangkat + radius akurasi</div>
+    </section>
+    <div class="legend"><div class="legend-title">KLASIFIKASI MATERIAL</div><div id="classLegend"></div><div style="height:1px;background:#5b737b55;margin:8px 0"></div><div class="legend-item"><i class="legend-line"></i> Footprint lantai</div><div class="legend-item"><i class="legend-line outer"></i> Boundary crest 60°</div><div class="legend-item"><i class="collar-legend-dot"></i> Collar / titik bor</div><div class="legend-item"><span class="collar-legend-id">ID</span> ID collar</div></div>
+    <div class="north"><b>↑</b>NORTH</div><div class="scale" id="scaleWidget">—<div class="scale-bar" id="scaleBar"></div></div><div class="map-hint" id="mapHint">Drag untuk pan · scroll untuk zoom · klik “Gambar footprint” untuk membuat boundary</div>
+  </div>
+  <div class="map-footer"><span><span class="footer-strong">CRS:</span> WGS 84 / UTM zone 51S (EPSG:32751) · Unit meter</span><span id="visibleFooter">— block · 0,5 m/pixel raster sumber</span></div>
+</main>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+
+
+
+<script src="./app.js"></script><script src="./workbench.js"></script></body>
+</html>

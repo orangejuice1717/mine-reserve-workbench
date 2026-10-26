@@ -1,0 +1,1 @@
+{"name": "Mine Reserve Workbench", "short_name": "Mine Reserve", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#0a1116", "theme_color": "#0a1116", "icons": [{"src": "./icons/mark.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]}

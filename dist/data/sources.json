@@ -1,0 +1,46 @@
+{
+  "source": "https://mine-reserve.pages.dev/",
+  "retrieved": "2026-10-25",
+  "files": [
+    {
+      "size": "1823034",
+      "name": "remain_reserve_okt_hir0.csv",
+      "modifiedTime": "2026-10-25T06:02:26.351Z"
+    },
+    {
+      "size": "898223",
+      "name": "assay_ukk_d_03122024_NEW__.csv",
+      "modifiedTime": "2025-06-12T10:16:48.000Z"
+    },
+    {
+      "size": "20336",
+      "name": "collar_ukk_d_03122024_new.csv",
+      "modifiedTime": "2024-12-05T09:04:22.000Z"
+    },
+    {
+      "size": "76437",
+      "name": "Collar_ALL_UKK.csv",
+      "modifiedTime": "2024-09-20T00:48:40.000Z"
+    },
+    {
+      "size": "3581134",
+      "name": "Assay_ALL_UKK.csv",
+      "modifiedTime": "2024-09-20T00:48:40.000Z"
+    },
+    {
+      "size": "24350",
+      "name": "collar-hir_04082024.csv",
+      "modifiedTime": "2024-08-05T08:52:54.000Z"
+    },
+    {
+      "size": "889",
+      "name": "collar-tambahan hir.csv",
+      "modifiedTime": "2024-08-05T08:48:30.000Z"
+    },
+    {
+      "size": "1217095",
+      "name": "assay-hir_04082024.csv",
+      "modifiedTime": "2024-08-05T08:27:06.000Z"
+    }
+  ]
+}

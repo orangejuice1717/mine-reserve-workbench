@@ -1,0 +1,11 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync('dist/app.js','utf8'),ctx={};vm.createContext(ctx);
+for(const [start,end] of [['function classifyMaterial(','function readCsvFile('],['function polygonArea(','function updateAutoLevelPreview('],['function simplePolygon(','function openDB(']])vm.runInContext(src.slice(src.indexOf(start),src.indexOf(end)),ctx);
+const header='X,Y,Z,ni,fe,density\n';
+assert.equal(ctx.parseCSV(header+'0,0,0,1,20,2').rows[0].density,2);
+for(const row of ['0,0,0,,20,2','0,0,0,1,,2','0,0,0,1,20,0','0,0,0,1,20,-2','0,0,0,1,20,','a,0,0,1,20,2','0,0,0,101,20,2','0,0,0,1,20,2\n0,0,0,1,20,2'])assert.throws(()=>ctx.parseCSV(header+row));
+assert.equal(ctx.parseCSV('X;Y;Z;ni;fe;density\n1;2;3;1,5;20;1,7').rows[0].ni,1.5);
+const poly=[{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:0,y:10}];for(const p of [...poly,{x:5,y:0},{x:10,y:5},{x:5,y:5}])assert.equal(ctx.pointInPoly(p.x,p.y,poly),true);assert.equal(ctx.pointInPoly(11,5,poly),false);assert.equal(ctx.simplePolygon(poly),true);assert.equal(ctx.simplePolygon([poly[0],poly[2],poly[1],poly[3]]),false);
+const {rows}=ctx.parseCSV(fs.readFileSync('dist/data/remain_reserve_okt_hir0.csv','utf8'));assert.equal(rows.length,33051);
+const xs=rows.map(r=>r.x),ys=rows.map(r=>r.y),bounds=[{x:Math.min(...xs)-6.25,y:Math.min(...ys)-6.25},{x:Math.max(...xs)+6.25,y:Math.min(...ys)-6.25},{x:Math.max(...xs)+6.25,y:Math.max(...ys)+6.25},{x:Math.min(...xs)-6.25,y:Math.max(...ys)+6.25}];assert.equal(rows.filter(r=>ctx.pointInPoly(r.x,r.y,bounds)).length,33051);
+const top=ctx.buildColumnTopIndex(rows),stage=rows.filter(r=>r.z===top.get(ctx.columnKey(r)));assert.equal(stage.length,2579);assert.equal(rows.length*156.25,5164218.75);const tons=rows.reduce((a,r)=>a+r.density*156.25,0);assert.ok(Math.abs(tons-8687781.25)<.01);console.log('PASS: CSV validation, decimal separators, duplicate detection, boundary inclusion, polygon intersections, 33,051 block snapshot and 2,579 stage-1 blocks.');

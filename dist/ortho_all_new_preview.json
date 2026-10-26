@@ -1,0 +1,23 @@
+{
+  "name": "ortho_all_new_preview.webp",
+  "source": "ortho_all_new(1).tif",
+  "sourceBytes": 520121231,
+  "sourceWidth": 18927,
+  "sourceHeight": 14476,
+  "previewWidth": 6000,
+  "previewHeight": 4589,
+  "crs": "EPSG:32751",
+  "resolutionMetersPerPixel": [
+    0.5,
+    0.5
+  ],
+  "bounds": {
+    "minX": 303559.56090125284,
+    "minY": 9787504.855706707,
+    "maxX": 313023.06090125284,
+    "maxY": 9794742.855706707
+  },
+  "format": "WebP",
+  "quality": 88,
+  "note": "Web display preview only; original GeoTIFF remains the authoritative source."
+}
